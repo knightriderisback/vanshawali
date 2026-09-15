@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>वंशावली — 3D Family Tree</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loader">
+    <div class="loader-inner">
+      <div class="dna-helix">
+        <div class="strand strand-1"></div>
+        <div class="strand strand-2"></div>
+        <div class="connector c1"></div>
+        <div class="connector c2"></div>
+        <div class="connector c3"></div>
+        <div class="connector c4"></div>
+        <div class="connector c5"></div>
+        <div class="connector c6"></div>
+      </div>
+      <h1 class="loader-title">वंशावली</h1>
+      <p class="loader-sub">VANSHAWALI • FAMILY CONSTELLATION</p>
+      <div class="loader-bar"><div class="loader-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- Top Header -->
+  <header id="top-header">
+    <div class="header-left">
+      <span class="header-logo">✦</span>
+      <span class="header-title">वंशावली</span>
+    </div>
+    <div class="header-right">
+      <button id="btn-search" class="icon-btn" title="Search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+      </button>
+      <button id="btn-reset" class="icon-btn" title="Reset View">
+        <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+      <button id="btn-info" class="icon-btn" title="Help">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Search Panel -->
+  <div id="search-panel" class="hidden">
+    <input type="text" id="search-input" placeholder="नाम खोजें... (Search name...)" autocomplete="off" />
+    <div id="search-results"></div>
+  </div>
+
+  <!-- Generation Labels -->
+  <div id="gen-labels">
+    <div class="gen-label" data-gen="0">पितामह</div>
+    <div class="gen-label" data-gen="1">दादा-दादी</div>
+    <div class="gen-label" data-gen="2">माता-पिता</div>
+    <div class="gen-label" data-gen="3">हम</div>
+    <div class="gen-label" data-gen="4">संतान</div>
+  </div>
+
+  <!-- THREE.js Canvas -->
+  <canvas id="canvas"></canvas>
+
+  <!-- Control Hints (mobile) -->
+  <div id="hint-bar">
+    <span>👆 नोड छुएं = विवरण</span>
+    <span>✌️ दो उंगली = ज़ूम</span>
+    <span>👋 स्वाइप = घुमाएं</span>
+  </div>
+
+  <!-- Member Detail Panel -->
+  <div id="detail-panel" class="hidden">
+    <div class="dp-overlay" id="dp-overlay"></div>
+    <div class="dp-card">
+      <button id="dp-close" class="dp-close-btn">✕</button>
+
+      <div class="dp-avatar-ring">
+        <div class="dp-avatar" id="dp-avatar">
+          <span id="dp-avatar-emoji"></span>
+        </div>
+        <div class="dp-ring ring1"></div>
+        <div class="dp-ring ring2"></div>
+        <div class="dp-ring ring3"></div>
+      </div>
+
+      <h2 class="dp-name" id="dp-name"></h2>
+      <p class="dp-relation" id="dp-relation"></p>
+
+      <div class="dp-stats">
+        <div class="dp-stat">
+          <span class="dp-stat-label">जन्म</span>
+          <span class="dp-stat-value" id="dp-birth"></span>
+        </div>
+        <div class="dp-stat" id="dp-death-row">
+          <span class="dp-stat-label">निधन</span>
+          <span class="dp-stat-value" id="dp-death"></span>
+        </div>
+        <div class="dp-stat">
+          <span class="dp-stat-label">स्थान</span>
+          <span class="dp-stat-value" id="dp-place"></span>
+        </div>
+      </div>
+
+      <div class="dp-bio" id="dp-bio"></div>
+
+      <div class="dp-connections" id="dp-connections">
+        <h3 class="dp-con-title">पारिवारिक संबंध</h3>
+        <div id="dp-con-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Modal -->
+  <div id="info-modal" class="hidden">
+    <div class="modal-overlay" id="modal-overlay"></div>
+    <div class="modal-card">
+      <button class="modal-close" id="modal-close">✕</button>
+      <h2>कैसे उपयोग करें?</h2>
+      <ul>
+        <li>👆 <b>एक उंगली स्वाइप</b> — 3D पेड़ घुमाएं</li>
+        <li>✌️ <b>दो उंगली पिंच/स्प्रेड</b> — ज़ूम इन/आउट</li>
+        <li>🔵 <b>नोड पर टैप करें</b> — सदस्य का विवरण देखें</li>
+        <li>🔄 <b>रीसेट बटन</b> — मूल दृश्य पर वापस</li>
+        <li>🔍 <b>खोज बटन</b> — नाम से सदस्य खोजें</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div id="stats-bar">
+    <div class="stat-item"><span class="stat-num" id="stat-members">12</span><span class="stat-lbl">सदस्य</span></div>
+    <div class="stat-divider"></div>
+    <div class="stat-item"><span class="stat-num" id="stat-gens">5</span><span class="stat-lbl">पीढ़ियां</span></div>
+    <div class="stat-divider"></div>
+    <div class="stat-item"><span class="stat-num" id="stat-years">80+</span><span class="stat-lbl">वर्ष</span></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
