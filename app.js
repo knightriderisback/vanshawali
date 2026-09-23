@@ -59,7 +59,7 @@ let assets={}, animFrame=0;
 const $=id=>document.getElementById(id);
 const toast=msg=>{const e=$("toast");e.textContent=msg;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),2200)};
 const save=()=>localStorage.setItem(KEY,JSON.stringify({title:state.title,people:state.people,relationships:state.relationships,labels:state.labels}));
-const load=()=>{try{const x=JSON.parse(localStorage.getItem(KEY)||"null");if(x&&Array.isArray(x.people)&&Array.isArray(x.relationships)){state={...state,...x,selected:null,generation:[0,Math.max(0,...x.people.map(p=>p.generation||0))]};return true}}catch(e){}return false};
+const hydrate=()=>{try{const x=JSON.parse(localStorage.getItem(KEY)||"null");if(x&&Array.isArray(x.people)&&Array.isArray(x.relationships)){state={...state,...x,selected:null,generation:[0,Math.max(0,...x.people.map(p=>p.generation||0))]};return true}}catch(e){}return false};
 const uid=p=>p+"_"+Math.random().toString(36).slice(2,9);
 const person=id=>state.people.find(p=>p.id===id);
 function init(){
@@ -76,9 +76,9 @@ function init(){
   const floor=new THREE.Mesh(new THREE.CircleGeometry(38,96),new THREE.MeshStandardMaterial({color:0x0b0d15,roughness:.92,metalness:.08}));floor.rotation.x=-Math.PI/2;floor.position.y=-4.3;floor.receiveShadow=true;scene.add(floor);
   const ring=new THREE.Mesh(new THREE.TorusGeometry(11,.018,8,180),new THREE.MeshBasicMaterial({color:0x5c4e2e,transparent:true,opacity:.5}));ring.rotation.x=Math.PI/2;ring.position.y=-4.25;scene.add(ring);
   loader=new GLTFLoader();
-  bindUI();load().then?null:null;
+  bindUI();
 }
-function load(){return Promise.resolve().then(async()=>{const had=load();$("title").textContent=state.title;if(!had)save();updateCounts();await preload();rebuild();$("loading").classList.add("done");fit();animate()})}
+async function boot(){const had=hydrate();$("title").textContent=state.title;if(!had)save();updateCounts();await preload();rebuild();$("loading").classList.add("done");fit();animate()}
 async function preload(){
   const list=[["male",ASSETS.male],["female",ASSETS.female],["hairLong",ASSETS.hairLong],["hairBuns",ASSETS.hairBuns],["hairBuzz",ASSETS.hairBuzz],["hairParted",ASSETS.hairParted],["beard",ASSETS.beard]];
   let done=0;for(const [k,url] of list){try{assets[k]=await loader.loadAsync(url);done++;$("loadText").textContent="Loading 3D characters · "+done+"/"+list.length}catch(e){console.warn("asset",k,e)}}
@@ -163,4 +163,4 @@ function bindUI(){
 }
 function animate(){animFrame=requestAnimationFrame(animate);controls.update();const t=performance.now()*.001;lineGroup.rotation.y=Math.sin(t*.12)*.015;nodes.forEach((n,i)=>{const halo=n.userData.halo;if(halo)halo.material.opacity=.32+Math.sin(t*2+i.length)*.1});renderer.render(scene,camera);labelRenderer.render(scene,camera)}
 function updateTitle(){const t=state.title;$("title").textContent=t}
-init();load();
+init();boot();
